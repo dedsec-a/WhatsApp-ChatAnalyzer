@@ -49,7 +49,7 @@ def activity_trend(df , frequency = "M"):
     else:
         print("Unspuuorted Value Type ")
         raise ValueError("Frequency should be either M or W")
-    
+     
     logging.info("Creating the Activity Trend Plot")
 
     # Ploting the Given Data 
