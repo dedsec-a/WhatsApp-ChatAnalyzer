@@ -1,74 +1,47 @@
-#PlaceHolder for Pre-processing Functions
-import re 
-import os 
-import string
-import numpy as np
-import pandas as pd
+import streamlit as st
+import os
+import utils.text_processing as tp  # Placeholder for your text processing module
+import utils.data_visualization as dv  # Placeholder for your visualization module
 
-# Loading the Text Data
-# Create a function to load the text data
+# App Title
+st.title("WhatsApp Chat Analyzer 📊")
 
+# File Upload Section
+uploaded_file = st.file_uploader("Upload WhatsApp Chat (.txt)", type=["txt"])
 
-def load_text_data(file_name):
-    """This Function Loads the Text Data from the File path"""
-    f = open(f(file_name), "r")
-    data = f.read()
-    # Calls for Pre-processing the Data
-    data = preprocess_text(data)
-    return data
+if uploaded_file is not None:
+    # Save the uploaded file
+    file_path = os.path.join("uploads", uploaded_file.name)
+    os.makedirs("uploads", exist_ok=True)
 
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
-def preprocess_text(text):
-    """This Fucntion does all the Basic works on the Whatsapp Text Data"""
-    # Regex Patter
-    pattern = r'\[(\d{2}/\d{2}/\d{2}),\s(\d{1,2}:\d{2}:\d{2})\s?[APMapm]{2}\] ~\s?(.*?):'
+    st.success(f"File uploaded successfully: {uploaded_file.name}")
 
-    # Finding the Matches 
-    matches = re.findall(pattern=pattern , text=text)
+    # Read File Content (Optional Preview)
+    with open(file_path, "r", encoding="utf-8") as file:
+        chat_data = file.read()
+        st.text_area("File Preview:", chat_data[:1000], height=300)  # Show first 1000 chars
 
-    # Creating list for Datetime and users 
-    dateTime = []
-    users = []
+    # Placeholder for Text Preprocessing
+    if st.button("Process Chat Data"):
+        st.info("🔄 Processing chat data...")
+        
+        # Replace with your function call
+        date_time, users = tp.preprocess_text(chat_data)
+        
+        st.success("✅ Data Processed Successfully!")
+        st.write("Sample Processed Data:")
+        st.write(date_time[:5])  # Show first 5 entries
+        st.write(users[:5])
 
-    for match in matches:
-        date,time,user_name = match
-        dateTime.append(f"{date} {time}")
-        users.append(user_name)
-        return dateTime, users
-    
-    # Create a Datagrame 
-    df = pd.DataFrame(list(zip(dateTime,users)), columns=["DateTime","Users"])
+    # Placeholder for Data Visualization
+    if st.button("Show Data Visualization"):
+        st.info("📊 Generating Visualizations...")
 
-    # Creating Seperate columns for Time 
-    df["Date"] = pd.to_datetime(df["dateTime"]).dt.date
-    df["Time"] = pd.to_datetime(df["dateTime"]).dt.time
+        # Replace with your visualization function
+        dv.generate_visuals(date_time, users)
 
-    # Converting Date into Days Months and Years
-    df["Year"] = pd.to_datetime(df["Date"]).dt.year
-    df["Month"]= pd.to_datetime(df["Date"]).dt.month
-    df["Day"] = pd.to_datetime(df["Date"]).dt.day
-
-    df["Hour"] = pd.to_datetime(df["Time"]).dt.hour
-    df["Minute"] = pd.to_datetime(df["Time"]).dt.minute
-    df["Second"] = pd.to_datetime(df["Time"]).dt.second
-
-    # Droping the DateTime Column
-    df.drop(columns=["DateTime"], inplace=True)
-
-    # Finding the Messages
-    pattern_text  =  r'\[\d{2}/\d{2}/\d{2},\s\d{1,2}:\d{2}:\d{2}\s?[APMapm]{2}\] ~\s?.*?:\s(.*)'
-
-    messages = re.findall(pattern= pattern_text, text=text)
-
-    df["Messages"] = messages
-
-    return df
-
-
-
-
-  
-
-
-    
+        st.success("✅ Visualization Generated!")
 
