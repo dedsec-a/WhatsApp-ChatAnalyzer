@@ -9,60 +9,53 @@ import pandas as pd
 # Create a function to load the text data
 
 
-def load_text_data(file_name):
-    """This Function Loads the Text Data from the File path"""
-    f = open(f(file_name), "r")
-    data = f.read()
-    # Calls for Pre-processing the Data
-    data = preprocess_text(data)
-    return data
 
+import re
+import pandas as pd
+
+import re
+import pandas as pd
 
 def preprocess_text(text):
-    """This Fucntion does all the Basic works on the Whatsapp Text Data"""
-    # Regex Patter
-    pattern = r'\[(\d{2}/\d{2}/\d{2}),\s(\d{1,2}:\d{2}:\d{2})\s?[APMapm]{2}\] ~\s?(.*?):'
+    """Processes WhatsApp chat data into structured format."""
 
-    # Finding the Matches 
-    matches = re.findall(pattern=pattern , text=text)
+    # Corrected regex pattern for extracting Date, Time, and Usernames
+    pattern = r'\[(\d{2}/\d{2}/\d{4}),\s(\d{1,2}:\d{2}:\d{2}\s?[APMapm]{2})\] (.*?): (.*)'
 
-    # Creating list for Datetime and users 
-    dateTime = []
-    users = []
+    # Finding matches
+    matches = re.findall(pattern, text)
 
-    for match in matches:
-        date,time,user_name = match
-        dateTime.append(f"{date} {time}")
-        users.append(user_name)
-        return dateTime, users
-    
-    # Create a Datagrame 
-    df = pd.DataFrame(list(zip(dateTime,users)), columns=["DateTime","Users"])
+    # If no matches are found, return an empty DataFrame
+    if not matches:
+        print("⚠️ No messages found! Check the file format or regex.")
+        return pd.DataFrame()
 
-    # Creating Seperate columns for Time 
-    df["Date"] = pd.to_datetime(df["dateTime"]).dt.date
-    df["Time"] = pd.to_datetime(df["dateTime"]).dt.time
+    # Creating a DataFrame
+    df = pd.DataFrame(matches, columns=["Date", "Time", "Users", "Messages"])
 
-    # Converting Date into Days Months and Years
-    df["Year"] = pd.to_datetime(df["Date"]).dt.year
-    df["Month"]= pd.to_datetime(df["Date"]).dt.month
-    df["Day"] = pd.to_datetime(df["Date"]).dt.day
+    # Convert DateTime to pandas datetime format
+    df["DateTime"] = pd.to_datetime(df["Date"] + " " + df["Time"])
 
-    df["Hour"] = pd.to_datetime(df["Time"]).dt.hour
-    df["Minute"] = pd.to_datetime(df["Time"]).dt.minute
-    df["Second"] = pd.to_datetime(df["Time"]).dt.second
+    # Extract Date and Time Separately
+    df["Date"] = df["DateTime"].dt.date
+    df["Time"] = df["DateTime"].dt.time
 
-    # Droping the DateTime Column
+    # Extract Year, Month, and Day
+    df["Year"] = df["DateTime"].dt.year
+    df["Month"] = df["DateTime"].dt.month
+    df["Day"] = df["DateTime"].dt.day
+
+    # Extract Hour, Minute, and Second
+    df["Hour"] = df["DateTime"].dt.hour
+    df["Minute"] = df["DateTime"].dt.minute
+    df["Second"] = df["DateTime"].dt.second
+
+    # Drop DateTime column (if not needed)
     df.drop(columns=["DateTime"], inplace=True)
 
-    # Finding the Messages
-    pattern_text  =  r'\[\d{2}/\d{2}/\d{2},\s\d{1,2}:\d{2}:\d{2}\s?[APMapm]{2}\] ~\s?.*?:\s(.*)'
-
-    messages = re.findall(pattern= pattern_text, text=text)
-
-    df["Messages"] = messages
-
     return df
+
+
 
 
 
