@@ -176,6 +176,7 @@ def create_wordcloud(df):
     plt.axis("off")
     plt.show()
     logging.info("Creating the WordCloud")
+    
 
  
 
